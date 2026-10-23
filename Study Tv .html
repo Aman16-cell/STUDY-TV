@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>StudyTV</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#101b2d;--card:#182742;--card2:#1f3254;--ink:#eef3fb;--mute:#93a4c3;--lamp:#ffd166;--ok:#7be0c3;--rest:#ff8fa3;--leaf:#8fe3a8}
+*{box-sizing:border-box;margin:0}
+html{font-size:calc(11px + .5vw)}
+body{font-family:"Bricolage Grotesque",system-ui,Segoe UI,Arial,sans-serif;background:radial-gradient(circle at 25% 20%,#1b2f52 0,var(--bg) 60%);color:var(--ink);min-height:100vh;padding:2rem 3rem;overflow-x:hidden}
+header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:1.5rem}
+h1{font-size:2.2rem;font-weight:800;letter-spacing:-.02em}
+.sub{color:var(--mute);font-size:1.1rem}
+main{display:grid;grid-template-columns:1.1fr 1fr;gap:2rem}
+section{background:var(--card);border-radius:1.6rem;padding:2rem}
+.f{outline:none;transition:transform .12s,box-shadow .12s}
+.f:focus{transform:scale(1.04);box-shadow:0 0 0 .22rem var(--ink),0 0 1.6rem rgba(255,209,102,.45)}
+.timer{text-align:center}
+.ring{position:relative;width:min(24rem,100%);aspect-ratio:1;margin:0 auto 1.2rem}
+.ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ring circle{fill:none;stroke-width:12}
+.track{stroke:var(--card2)}
+.bar{stroke:var(--lamp);stroke-linecap:round;transition:stroke-dashoffset .3s linear,stroke .3s}
+.rest .bar{stroke:var(--leaf)}
+body{transition:background .8s}
+body.rest{background:radial-gradient(circle at 25% 20%,#1f5a49 0,#0e2a27 62%)}
+body.rest button.main{background:var(--leaf)}
+#quote{transition:opacity .3s}
+.digits{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.digits b{font-size:5.4rem;font-weight:800;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.digits span{color:var(--mute);font-size:1.2rem}
+.btns{display:flex;gap:.8rem;justify-content:center;flex-wrap:wrap;margin-top:.8rem}
+button,input{font:inherit;color:inherit}
+button{background:var(--card2);border:0;border-radius:1rem;padding:.7rem 1.3rem;font-size:1.15rem;font-weight:700;cursor:pointer}
+button.main{background:var(--lamp);color:#1a2236;padding:.7rem 2.2rem}
+button.on{box-shadow:inset 0 0 0 .16rem var(--lamp)}
+.stat{margin-top:1.2rem;color:var(--mute);font-size:1.15rem}
+h2{font-size:1.6rem;margin-bottom:1rem}
+.add{display:flex;gap:.7rem;margin-bottom:1rem}
+input{flex:1;background:var(--card2);border:0;border-radius:1rem;padding:.8rem 1rem;font-size:1.15rem}
+input::placeholder{color:var(--mute)}
+#list{display:flex;flex-direction:column;gap:.6rem;max-height:17rem;overflow-y:auto;padding:.4rem}
+.row{display:flex;align-items:center;gap:.9rem;background:var(--card2);border-radius:1rem;padding:.7rem 1rem;font-size:1.2rem;cursor:pointer}
+.row .t{flex:1}
+.box{width:1.5rem;height:1.5rem;border-radius:.45rem;border:.16rem solid var(--mute);display:grid;place-items:center;font-size:1rem}
+.row.done .t{text-decoration:line-through;color:var(--mute)}
+.row.done .box{background:var(--ok);border-color:var(--ok);color:#10261f}
+.x{padding:.2rem .7rem;font-size:1rem;background:transparent;color:var(--mute)}
+.empty{color:var(--mute);font-size:1.15rem;padding:.6rem}
+footer{margin-top:1.6rem;display:flex;justify-content:space-between;gap:2rem;color:var(--mute);font-size:1.05rem}
+#quote{color:var(--ink);font-size:1.3rem;font-weight:500}
+@media(max-width:800px){main{grid-template-columns:1fr}body{padding:1rem}}
+</style>
+</head>
+<body>
+<header>
+  <h1>StudyTV</h1>
+  <div class="sub" id="clock"></div>
+</header>
+<main>
+  <section class="timer" id="timer">
+    <div class="ring">
+      <svg viewBox="0 0 280 280"><circle class="track" cx="140" cy="140" r="120"/><circle class="bar" id="bar" cx="140" cy="140" r="120" stroke-dasharray="754" stroke-dashoffset="0"/></svg>
+      <div class="digits"><b id="time">25:00</b><span id="label">Time to focus</span></div>
+    </div>
+    <div class="btns">
+      <button class="main f" id="go">Start</button>
+      <button class="f" id="reset">Reset</button>
+    </div>
+    <div class="btns" id="modes">
+      <button class="f on" data-m="focus">Focus 25</button>
+      <button class="f" data-m="short">Break 5</button>
+      <button class="f" data-m="long">Long break 15</button>
+    </div>
+    <div class="btns"><button class="f" id="snd">Nature sound: On</button></div>
+    <div class="stat" id="stat"></div>
+  </section>
+  <section>
+    <h2>Today's tasks</h2>
+    <div class="add">
+      <input class="f" id="inp" placeholder="Type a task, press Enter" maxlength="60" autocomplete="off">
+      <button class="f" id="addbtn">Add</button>
+    </div>
+    <div id="list"></div>
+  </section>
+</main>
+<footer>
+  <div id="quote"></div>
+  <div>Remote: arrows move, Select presses, Play/Pause starts the timer</div>
+</footer>
+<script>
+const $=s=>document.querySelector(s);
+const MODES={focus:[25*60,"Time to focus"],short:[5*60,"Take a short break"],long:[15*60,"Take a long break"]};
+const QUOTES=["Small steps every day add up to big results.","Start before you feel ready.","Focus on progress, not perfection.","One task at a time is enough.","Your future self will thank you for this hour.","Discipline is choosing what you want most over what you want now.","A calm mind studies better."];
+const NATURE=["Like a tree, grow slowly and stand strong.","Rivers never rush, yet they always reach the sea.","The sun rests every night. Rest is part of the work.","Look far away at the trees or the sky and let your eyes relax.","Every great forest began with a single seed.","Take a deep breath, like the fresh air after rain.","Flowers bloom in their own time, and so will you.","A calm lake reflects the sky. A calm mind thinks clearly.","Drink some water and stretch gently. You are doing well."];
+let DAILY=null,shownMode=null,lastN=-1,sndOn=true,ac=null,nat=null,birdT=null;
+let mode="focus",left=MODES.focus[0],running=false,endAt=0,iv=null;
+const today=new Date().toISOString().slice(0,10);
+function load(k,d){try{return JSON.parse(localStorage.getItem(k))??d}catch(e){return d}}
+function save(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+let tasks=load("stv_tasks",[{t:"Revise one chapter",d:false},{t:"Solve 5 practice problems",d:false}]);
+let stats=load("stv_stats",{});
+if(stats.day!==today)stats={day:today,n:0};
+
+function fmt(s){return String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0")}
+function draw(){
+  $("#time").textContent=fmt(left);
+  $("#label").textContent=running?(mode==="focus"?"Stay with it":"Breathe and look away"):MODES[mode][1];
+  document.body.classList.toggle("rest",mode!=="focus");
+  if(shownMode!==mode){shownMode=mode;pickQuote()}
+  $("#bar").style.strokeDashoffset=754*(1-left/MODES[mode][0]);
+  $("#timer").classList.toggle("rest",mode!=="focus");
+  $("#go").textContent=running?"Pause":"Start";
+  document.querySelectorAll("#modes button").forEach(b=>b.classList.toggle("on",b.dataset.m===mode));
+  $("#stat").textContent="Focus sessions today: "+stats.n+"  |  Tasks done: "+tasks.filter(t=>t.d).length+"/"+tasks.length;
+  document.title=(running?fmt(left)+" - ":"")+"StudyTV";
+}
+function beep(){
+  try{const c=new (window.AudioContext||window.webkitAudioContext)();
+  [0,.35,.7].forEach(t=>{const o=c.createOscillator(),g=c.createGain();o.frequency.value=880;o.connect(g);g.connect(c.destination);
+  g.gain.setValueAtTime(.2,c.currentTime+t);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+t+.3);o.start(c.currentTime+t);o.stop(c.currentTime+t+.3)})}catch(e){}
+}
+function pickQuote(){
+  const q=$("#quote");
+  if(mode==="focus"){q.textContent=DAILY;return}
+  let n;do{n=Math.floor(Math.random()*NATURE.length)}while(n===lastN&&NATURE.length>1);
+  lastN=n;q.textContent=NATURE[n];
+}
+function noiseSrc(kind){
+  const len=ac.sampleRate*4,buf=ac.createBuffer(1,len,ac.sampleRate),d=buf.getChannelData(0);
+  let last=0;
+  for(let i=0;i<len;i++){const w=Math.random()*2-1;if(kind==="brown"){last=(last+.02*w)/1.02;d[i]=last*3.5}else d[i]=w*.5}
+  const s=ac.createBufferSource();s.buffer=buf;s.loop=true;return s;
+}
+function chirp(){
+  if(!ac||!nat)return;
+  const t0=ac.currentTime;
+  const tone=(t,f1,f2,len,vol)=>{
+    const o=ac.createOscillator(),g=ac.createGain();
+    o.type="sine";o.frequency.setValueAtTime(f1,t);o.frequency.exponentialRampToValueAtTime(f2,t+len);
+    g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+len*.25);g.gain.exponentialRampToValueAtTime(.001,t+len*1.3);
+    o.connect(g);g.connect(nat.g);o.start(t);o.stop(t+len*1.4);
+  };
+  if(Math.random()<.6){
+    const k=3+Math.floor(Math.random()*3),base=2500+Math.random()*1000;
+    for(let i=0;i<k;i++)tone(t0+i*.13,base,base*1.25,.09,.03);
+  }else{
+    const base=1800+Math.random()*500;
+    tone(t0,base,base*1.2,.32,.035);tone(t0+.45,base*1.1,base*1.35,.34,.03);
+  }
+  birdT=setTimeout(chirp,3500+Math.random()*5500);
+}
+function natureStart(){
+  if(!sndOn||nat)return;
+  try{
+    ac=ac||new (window.AudioContext||window.webkitAudioContext)();
+    if(ac.resume)ac.resume();
+    const t=ac.currentTime,master=ac.createGain(),srcs=[];
+    master.gain.setValueAtTime(0,t);master.gain.linearRampToValueAtTime(.4,t+4);master.connect(ac.destination);
+    // soft wind: slow gentle gusts plus a light airy whoosh
+    const w1=noiseSrc("brown"),wl=ac.createBiquadFilter(),wg=ac.createGain();
+    wl.type="lowpass";wl.frequency.value=420;wg.gain.value=.9;
+    const gl=ac.createOscillator(),glg=ac.createGain();gl.frequency.value=.08;glg.gain.value=180;gl.connect(glg);glg.connect(wl.frequency);
+    w1.connect(wl);wl.connect(wg);wg.connect(master);w1.start();gl.start();srcs.push(w1,gl);
+    const w2=noiseSrc("white"),wb=ac.createBiquadFilter(),wg2=ac.createGain();
+    wb.type="bandpass";wb.frequency.value=600;wb.Q.value=.6;wg2.gain.value=.025;
+    const gl2=ac.createOscillator(),glg2=ac.createGain();gl2.frequency.value=.06;glg2.gain.value=.015;gl2.connect(glg2);glg2.connect(wg2.gain);
+    w2.connect(wb);wb.connect(wg2);wg2.connect(master);w2.start();gl2.start();srcs.push(w2,gl2);
+    nat={g:master,srcs};birdT=setTimeout(chirp,2500);
+  }catch(e){nat=null}
+}
+function natureStop(){
+  clearTimeout(birdT);
+  if(!nat)return;
+  const n=nat;nat=null;
+  try{n.g.gain.cancelScheduledValues(ac.currentTime);n.g.gain.setValueAtTime(n.g.gain.value,ac.currentTime);n.g.gain.linearRampToValueAtTime(0,ac.currentTime+.8);
+  setTimeout(()=>{n.srcs.forEach(x=>{try{x.stop()}catch(e){}});try{n.g.disconnect()}catch(e){}},1000)}catch(e){}
+}
+function setMode(m){stop();mode=m;left=MODES[m][0];draw()}
+function stop(){running=false;clearInterval(iv);natureStop()}
+function toggle(){
+  if(running){stop();draw();return}
+  running=true;endAt=Date.now()+left*1000;
+  if(mode!=="focus")natureStart();
+  iv=setInterval(()=>{
+    left=Math.max(0,Math.round((endAt-Date.now())/1000));
+    if(left===0){
+      stop();beep();
+      if(mode==="focus"){stats.n++;save("stv_stats",stats);setMode(stats.n%4===0?"long":"short")}else setMode("focus");
+    }
+    draw();
+  },250);
+  draw();
+}
+function renderTasks(keep){
+  const L=$("#list");L.innerHTML="";
+  if(!tasks.length){const e=document.createElement("div");e.className="empty";e.textContent="No tasks yet. Add your first one above.";L.appendChild(e)}
+  tasks.forEach((k,i)=>{
+    const r=document.createElement("div");r.className="row f"+(k.d?" done":"");r.tabIndex=0;
+    const b=document.createElement("span");b.className="box";b.textContent=k.d?"\u2713":"";
+    const t=document.createElement("span");t.className="t";t.textContent=k.t;
+    const x=document.createElement("button");x.className="x f";x.textContent="Remove";
+    r.onclick=()=>{tasks[i].d=!tasks[i].d;save("stv_tasks",tasks);renderTasks(i);draw()};
+    x.onclick=e=>{e.stopPropagation();tasks.splice(i,1);save("stv_tasks",tasks);renderTasks(Math.min(i,tasks.length-1));draw()};
+    r.append(b,t,x);L.appendChild(r);
+  });
+  if(keep!=null&&keep>=0){const rows=L.querySelectorAll(".row");if(rows[keep])rows[keep].focus()}
+}
+function addTask(){
+  const v=$("#inp").value.trim();if(!v)return;
+  tasks.push({t:v,d:false});save("stv_tasks",tasks);$("#inp").value="";renderTasks();draw();
+}
+function move(dx,dy){
+  const els=[...document.querySelectorAll(".f")].filter(e=>e.offsetParent);
+  const a=document.activeElement;
+  if(!els.includes(a)){els[0].focus();return}
+  const r=a.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;
+  let best=null,bs=1e9;
+  for(const el of els){
+    if(el===a)continue;
+    const q=el.getBoundingClientRect(),x=q.left+q.width/2-cx,y=q.top+q.height/2-cy;
+    const p=dx?x*dx:y*dy;if(p<=1)continue;
+    const s=(dx?Math.abs(y):Math.abs(x))*2+p;
+    if(s<bs){bs=s;best=el}
+  }
+  if(best){best.focus();best.scrollIntoView({block:"nearest"})}
+}
+const DIRS={ArrowUp:[0,-1],ArrowDown:[0,1],ArrowLeft:[-1,0],ArrowRight:[1,0]};
+addEventListener("keydown",e=>{
+  const a=document.activeElement,typing=a&&a.tagName==="INPUT";
+  const d=DIRS[e.key];
+  if(d){if(typing&&d[1]===0)return;e.preventDefault();move(d[0],d[1]);return}
+  if(e.key==="MediaPlayPause"||e.keyCode===179){e.preventDefault();toggle();return}
+  if(e.key==="Escape"||e.keyCode===4||(e.key==="Backspace"&&!typing)){e.preventDefault();$("#go").focus();return}
+  if(e.key==="Enter"){
+    if(typing){e.preventDefault();addTask();return}
+    if(a&&a.classList.contains("f")&&a.tagName!=="BUTTON"){e.preventDefault();a.click()}
+  }
+});
+$("#go").onclick=toggle;
+$("#snd").onclick=()=>{
+  sndOn=!sndOn;$("#snd").textContent="Nature sound: "+(sndOn?"On":"Off");
+  if(!sndOn)natureStop();else if(running&&mode!=="focus")natureStart();
+};
+$("#reset").onclick=()=>setMode(mode);
+$("#addbtn").onclick=addTask;
+document.querySelectorAll("#modes button").forEach(b=>b.onclick=()=>setMode(b.dataset.m));
+function tick(){$("#clock").textContent=new Date().toLocaleString([], {weekday:"long",hour:"2-digit",minute:"2-digit"})}
+tick();setInterval(tick,30000);
+DAILY=QUOTES[Math.floor(Date.now()/864e5)%QUOTES.length];
+renderTasks();draw();$("#go").focus();
+</script>
+</body>
+</html>
